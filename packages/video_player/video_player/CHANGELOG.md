@@ -1,6 +1,7 @@
-## 2.11.1
+## 2.12.0
 
 * Optimizes caption retrieval with binary search.
+* Adds `VideoPlayerAndroidOptions` to configure Android renderer settings during player creation.
 
 ## 2.11.0
 

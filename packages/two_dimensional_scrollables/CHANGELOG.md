@@ -1,7 +1,16 @@
-## NEXT
+## 0.4.0
+
+* Added `alignment` property to `TableView` and `TreeView` to align content within the viewport when it is smaller than the viewport extent.
+
+## 0.3.9
+
+* Fixes TableSpan borders being flipped when one or both axis directions are reversed.
+
+## 0.3.8
 
 * Updates minimum supported SDK version to Flutter 3.35/Dart 3.9.
 * Updates examples to use the new RadioGroup API instead of deprecated Radio parameters.
+* Optimizes tableview janks with >250k rows.
 
 ## 0.3.7
 

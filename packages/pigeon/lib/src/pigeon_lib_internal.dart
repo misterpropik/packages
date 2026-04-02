@@ -23,9 +23,11 @@ import 'dart/dart_generator.dart';
 import 'generator_tools.dart';
 import 'gobject/gobject_generator.dart';
 import 'java/java_generator.dart';
+import 'kotlin/jnigen_config_generator.dart';
 import 'kotlin/kotlin_generator.dart';
 import 'objc/objc_generator.dart';
 import 'pigeon_lib.dart';
+import 'swift/ffigen_config_generator.dart';
 import 'swift/swift_generator.dart';
 
 /// Options used when running the code generator.
@@ -33,6 +35,7 @@ class InternalPigeonOptions {
   /// Creates a instance of InternalPigeonOptions
   const InternalPigeonOptions({
     required this.input,
+    required this.appDirectory,
     required this.objcOptions,
     required this.javaOptions,
     required this.swiftOptions,
@@ -51,6 +54,7 @@ class InternalPigeonOptions {
     PigeonOptions options,
     Iterable<String>? copyrightHeader,
   ) : input = options.input,
+      appDirectory = options.appDirectory,
       objcOptions =
           (options.objcHeaderOut == null || options.objcSourceOut == null)
           ? null
@@ -59,6 +63,8 @@ class InternalPigeonOptions {
               objcHeaderOut: options.objcHeaderOut!,
               objcSourceOut: options.objcSourceOut!,
               fileSpecificClassNameComponent:
+                  options.objcOptions?.fileSpecificClassNameComponent ??
+                  options.fileSpecificClassNameComponent ??
                   options.objcSourceOut
                       ?.split('/')
                       .lastOrNull
@@ -80,6 +86,9 @@ class InternalPigeonOptions {
               options.swiftOptions ?? const SwiftOptions(),
               swiftOut: options.swiftOut!,
               copyrightHeader: copyrightHeader,
+              fileSpecificClassNameComponent:
+                  options.swiftOptions?.fileSpecificClassNameComponent ??
+                  options.fileSpecificClassNameComponent,
             ),
       kotlinOptions = options.kotlinOut == null
           ? null
@@ -87,6 +96,9 @@ class InternalPigeonOptions {
               options.kotlinOptions ?? const KotlinOptions(),
               kotlinOut: options.kotlinOut!,
               copyrightHeader: copyrightHeader,
+              fileSpecificClassNameComponent:
+                  options.kotlinOptions?.fileSpecificClassNameComponent ??
+                  options.fileSpecificClassNameComponent,
             ),
       cppOptions =
           (options.cppHeaderOut == null || options.cppSourceOut == null)
@@ -116,6 +128,30 @@ class InternalPigeonOptions {
               dartOut: options.dartOut,
               testOut: options.dartTestOut,
               copyrightHeader: copyrightHeader,
+              useJni: options.kotlinOptions?.useJni ?? false,
+              useFfi: options.swiftOptions?.useFfi ?? false,
+              ffiErrorClassName:
+                  options.swiftOptions?.errorClassName ?? 'PigeonError',
+              jniErrorClassName:
+                  options.kotlinOptions?.errorClassName ?? 'FlutterError',
+              fileSpecificClassNameComponent:
+                  options.fileSpecificClassNameComponent ??
+                  (options.swiftOptions?.useFfi ?? false
+                      ? options.swiftOptions?.fileSpecificClassNameComponent ??
+                            options.swiftOut
+                                ?.split('/')
+                                .lastOrNull
+                                ?.split('.')
+                                .firstOrNull
+                      : null) ??
+                  (options.kotlinOptions?.useJni ?? false
+                      ? options.kotlinOptions?.fileSpecificClassNameComponent ??
+                            options.kotlinOut
+                                ?.split('/')
+                                .lastOrNull
+                                ?.split('.')
+                                .firstOrNull
+                      : null),
             ),
       copyrightHeader = options.copyrightHeader != null
           ? _lineReader(
@@ -143,6 +179,9 @@ class InternalPigeonOptions {
 
   /// Path to the file which will be processed.
   final String? input;
+
+  /// Path to the app directory.
+  final String? appDirectory;
 
   /// Options that control how Dart will be generated.
   final InternalDartOptions? dartOptions;
@@ -508,6 +547,56 @@ class SwiftGeneratorAdapter implements GeneratorAdapter {
   List<Error> validate(InternalPigeonOptions options, Root root) => <Error>[];
 }
 
+/// A [GeneratorAdapter] that generates FfigenConfig source code.
+class FfigenConfigGeneratorAdapter implements GeneratorAdapter {
+  /// Constructor for [FfigenConfigGeneratorAdapter].
+  const FfigenConfigGeneratorAdapter();
+
+  @override
+  List<FileType> get fileTypeList => const <FileType>[FileType.na];
+
+  @override
+  void generate(
+    StringSink sink,
+    InternalPigeonOptions options,
+    Root root,
+    FileType fileType,
+  ) {
+    if (options.swiftOptions == null || options.dartOptions == null) {
+      return;
+    }
+    final generator = FfigenConfigGenerator();
+
+    final ffigenYamlOptions = InternalFfigenConfigOptions(
+      options.dartOptions!,
+      options.swiftOptions!,
+      options.basePath,
+      options.dartOptions?.dartOut,
+      options.swiftOptions!.swiftOut,
+    );
+
+    generator.generate(
+      ffigenYamlOptions,
+      root,
+      sink,
+      dartPackageName: options.dartPackageName,
+    );
+  }
+
+  @override
+  IOSink? shouldGenerate(InternalPigeonOptions options, FileType _) =>
+      options.swiftOptions?.appDirectory != null &&
+          (options.swiftOptions?.useFfi ?? false)
+      ? _openSink(
+          'ffigen_config.dart',
+          basePath: options.swiftOptions?.appDirectory ?? '',
+        )
+      : null;
+
+  @override
+  List<Error> validate(InternalPigeonOptions options, Root root) => <Error>[];
+}
+
 /// A [GeneratorAdapter] that generates C++ source code.
 class CppGeneratorAdapter implements GeneratorAdapter {
   /// Constructor for [CppGeneratorAdapter].
@@ -676,6 +765,51 @@ class KotlinGeneratorAdapter implements GeneratorAdapter {
         options.kotlinOptions?.kotlinOut,
         basePath: options.basePath ?? '',
       );
+
+  @override
+  List<Error> validate(InternalPigeonOptions options, Root root) => <Error>[];
+}
+
+/// A [GeneratorAdapter] that generates JnigenYaml source code.
+class JnigenConfigGeneratorAdapter implements GeneratorAdapter {
+  /// Constructor for [JnigenConfigGeneratorAdapter].
+  const JnigenConfigGeneratorAdapter();
+
+  @override
+  List<FileType> get fileTypeList => const <FileType>[FileType.na];
+
+  @override
+  void generate(
+    StringSink sink,
+    InternalPigeonOptions options,
+    Root root,
+    FileType fileType,
+  ) {
+    if (options.kotlinOptions == null || options.dartOptions == null) {
+      return;
+    }
+    final generator = JnigenConfigGenerator();
+    final jnigenYamlOptions = InternalJnigenConfigOptions(
+      options.dartOptions!,
+      options.kotlinOptions!,
+      options.basePath,
+      options.appDirectory,
+    );
+
+    generator.generate(
+      jnigenYamlOptions,
+      root,
+      sink,
+      dartPackageName: options.dartPackageName,
+    );
+  }
+
+  @override
+  IOSink? shouldGenerate(InternalPigeonOptions options, FileType _) =>
+      options.kotlinOptions?.kotlinOut != null &&
+          (options.kotlinOptions?.useJni ?? false)
+      ? _openSink('jnigen_config.dart', basePath: options.appDirectory ?? '')
+      : null;
 
   @override
   List<Error> validate(InternalPigeonOptions options, Root root) => <Error>[];
@@ -1293,6 +1427,8 @@ class RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
   ParseResults results() {
     _storeCurrentApi();
     _storeCurrentClass();
+    final referencedLists = <String, TypeDeclaration>{};
+    final referencedMaps = <String, TypeDeclaration>{};
 
     final Map<TypeDeclaration, List<int>> referencedTypes = getReferencedTypes(
       _apis,
@@ -1310,6 +1446,7 @@ class RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
     }
 
     final referencedEnums = List<Enum>.from(_enums);
+
     var containsHostApi = false;
     var containsFlutterApi = false;
     var containsProxyApi = false;
@@ -1326,17 +1463,13 @@ class RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
         case AstEventChannelApi():
           containsEventChannel = true;
       }
+      if (containsEventChannel &&
+          containsFlutterApi &&
+          containsProxyApi &&
+          containsHostApi) {
+        break;
+      }
     }
-
-    final completeRoot = Root(
-      apis: _apis,
-      classes: _classes,
-      enums: referencedEnums,
-      containsHostApi: containsHostApi,
-      containsFlutterApi: containsFlutterApi,
-      containsProxyApi: containsProxyApi,
-      containsEventChannel: containsEventChannel,
-    );
 
     final totalErrors = List<Error>.from(_errors);
 
@@ -1398,13 +1531,43 @@ class RootBuilder extends dart_ast_visitor.RecursiveAstVisitor<Object?> {
         api.interfaces = newInterfaceSet;
       }
     }
+
+    final Map<TypeDeclaration, List<int>> referencedTypesAfterAssoc =
+        getReferencedTypes(_apis, _classes);
+
+    for (final TypeDeclaration type in referencedTypesAfterAssoc.keys) {
+      if (type.baseName == 'List') {
+        referencedLists[type.getFullName(withNullable: false)] = type;
+      } else if (type.baseName == 'Map') {
+        referencedMaps[type.getFullName(withNullable: false)] = type;
+      }
+    }
+
+    final completeRoot = Root(
+      apis: _apis,
+      classes: _classes,
+      enums: referencedEnums,
+      lists: referencedLists,
+      maps: referencedMaps,
+      containsHostApi: containsHostApi,
+      containsFlutterApi: containsFlutterApi,
+      containsProxyApi: containsProxyApi,
+      containsEventChannel: containsEventChannel,
+    );
+
     final List<Error> validateErrors = _validateAst(completeRoot, source);
     totalErrors.addAll(validateErrors);
 
     return ParseResults(
       root: totalErrors.isEmpty
           ? completeRoot
-          : Root(apis: <Api>[], classes: <Class>[], enums: <Enum>[]),
+          : Root(
+              apis: <Api>[],
+              classes: <Class>[],
+              enums: <Enum>[],
+              lists: <String, TypeDeclaration>{},
+              maps: <String, TypeDeclaration>{},
+            ),
       errors: totalErrors,
       pigeonOptions: _pigeonOptions,
     );

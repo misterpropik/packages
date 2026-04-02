@@ -66,7 +66,15 @@ private func createConnectionError(withChannelName channelName: String) -> Pigeo
 }
 
 private func isNullish(_ value: Any?) -> Bool {
-  return value is NSNull || value == nil
+  guard let innerValue = value else {
+    return true
+  }
+
+  if case Optional<Any>.some(Optional<Any>.none) = value {
+    return true
+  }
+
+  return innerValue is NSNull
 }
 
 private func nilOrValue<T>(_ value: Any?) -> T? {
@@ -4558,6 +4566,7 @@ class HostIntegrationCoreApiSetup {
     }
   }
 }
+
 /// The core interface that the Dart platform_test code implements for host
 /// integration tests to call into.
 ///
@@ -6253,6 +6262,7 @@ class HostSmallApiSetup {
     }
   }
 }
+
 /// A simple API called in some unit tests.
 ///
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.

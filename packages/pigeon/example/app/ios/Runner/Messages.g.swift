@@ -65,7 +65,15 @@ private func createConnectionError(withChannelName channelName: String) -> Pigeo
 }
 
 private func isNullish(_ value: Any?) -> Bool {
-  return value is NSNull || value == nil
+  guard let innerValue = value else {
+    return true
+  }
+
+  if case Optional<Any>.some(Optional<Any>.none) = value {
+    return true
+  }
+
+  return innerValue is NSNull
 }
 
 private func nilOrValue<T>(_ value: Any?) -> T? {
@@ -349,6 +357,7 @@ class ExampleHostApiSetup {
     }
   }
 }
+
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol MessageFlutterApiProtocol {
   func flutterMethod(

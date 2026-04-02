@@ -9,7 +9,6 @@
 
 import 'dart:async';
 import 'dart:typed_data' show Float64List, Int32List, Int64List;
-
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
@@ -173,6 +172,11 @@ class MessageSearchRequest {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return _toList().toString();
+  }
 }
 
 /// This comment is to test class documentation comments.
@@ -224,6 +228,11 @@ class MessageSearchReply {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return _toList().toString();
+  }
 }
 
 /// This comment is to test class documentation comments.
@@ -261,6 +270,11 @@ class MessageNested {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return _toList().toString();
+  }
 }
 
 class _PigeonCodec extends StandardMessageCodec {
@@ -309,8 +323,8 @@ class _PigeonCodec extends StandardMessageCodec {
 ///
 /// This comment also tests multiple line comments.
 class MessageApi {
-  /// Constructor for [MessageApi].  The [binaryMessenger] named argument is
-  /// available for dependency injection.  If it is left null, the default
+  /// Constructor for [MessageApi]. The [binaryMessenger] named argument is
+  /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   MessageApi({
     BinaryMessenger? binaryMessenger,
@@ -319,8 +333,8 @@ class MessageApi {
        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
            ? '.$messageChannelSuffix'
            : '';
-  final BinaryMessenger? pigeonVar_binaryMessenger;
 
+  final BinaryMessenger? pigeonVar_binaryMessenger;
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   final String pigeonVar_messageChannelSuffix;
@@ -371,8 +385,8 @@ class MessageApi {
 
 /// This comment is to test api documentation comments.
 class MessageNestedApi {
-  /// Constructor for [MessageNestedApi].  The [binaryMessenger] named argument is
-  /// available for dependency injection.  If it is left null, the default
+  /// Constructor for [MessageNestedApi]. The [binaryMessenger] named argument is
+  /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   MessageNestedApi({
     BinaryMessenger? binaryMessenger,
@@ -381,8 +395,8 @@ class MessageNestedApi {
        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
            ? '.$messageChannelSuffix'
            : '';
-  final BinaryMessenger? pigeonVar_binaryMessenger;
 
+  final BinaryMessenger? pigeonVar_binaryMessenger;
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   final String pigeonVar_messageChannelSuffix;

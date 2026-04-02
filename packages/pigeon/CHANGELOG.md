@@ -1,3 +1,8 @@
+## 26.4.0
+
+* [swift] [kotlin] Adds support for FFI and JNI.
+* Expose missing PigeonOptions and language-specific configurations as command-line arguments.
+
 ## 26.3.3
 
 * Updates `analyzer` dependency to support versions 10 through 12.

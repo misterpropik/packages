@@ -35,6 +35,12 @@ const Map<String, Set<GeneratorLanguage>> _unsupportedFiles =
         GeneratorLanguage.java,
         GeneratorLanguage.objc,
       },
+      'ni_tests': <GeneratorLanguage>{
+        GeneratorLanguage.cpp,
+        GeneratorLanguage.gobject,
+        GeneratorLanguage.java,
+        GeneratorLanguage.objc,
+      },
     };
 
 String _snakeToPascalCase(String snake) {
@@ -92,6 +98,7 @@ Future<int> generateTestPigeons({
     'nullable_returns',
     'primitive',
     'proxy_api_tests',
+    'ni_tests',
   };
 
   const testPluginName = 'test_plugin';
@@ -130,6 +137,7 @@ Future<int> generateTestPigeons({
     // Generate the default language test plugin output.
     int generateCode = await runPigeon(
       input: './pigeons/$input.dart',
+      appDirectory: '$outputBase/example/',
       dartOut: '$sharedDartOutputBase/lib/src/generated/$input.gen.dart',
       dartTestOut: input == 'message'
           ? '$sharedDartOutputBase/test/test_message.gen.dart'
@@ -142,6 +150,7 @@ Future<int> generateTestPigeons({
           : '$outputBase/android/src/main/kotlin/com/example/test_plugin/$pascalCaseName.gen.kt',
       kotlinPackage: 'com.example.test_plugin',
       kotlinErrorClassName: kotlinErrorName,
+      kotlinUseJni: input == 'ni_tests',
       kotlinIncludeErrorClass: input != 'primitive',
       // iOS/macOS
       swiftOut: skipLanguages.contains(GeneratorLanguage.swift)
@@ -149,6 +158,8 @@ Future<int> generateTestPigeons({
           : '$outputBase/darwin/$testPluginName/Sources/$testPluginName/$pascalCaseName.gen.swift',
       swiftErrorClassName: swiftErrorClassName,
       swiftIncludeErrorClass: input != 'primitive',
+      swiftUseFfi: input == 'ni_tests',
+      swiftAppDirectory: '$outputBase/example',
       // Linux
       gobjectHeaderOut: skipLanguages.contains(GeneratorLanguage.gobject)
           ? null
@@ -228,14 +239,19 @@ Future<int> generateTestPigeons({
 
 Future<int> runPigeon({
   required String input,
+  String? appDirectory,
   String? kotlinOut,
   String? kotlinPackage,
   String? kotlinErrorClassName,
+  bool kotlinUseJni = false,
   bool kotlinIncludeErrorClass = true,
+  String kotlinAppDirectory = '',
   bool kotlinUseGeneratedAnnotation = false,
   bool swiftIncludeErrorClass = true,
   String? swiftOut,
   String? swiftErrorClassName,
+  bool swiftUseFfi = false,
+  String swiftAppDirectory = '',
   String? cppHeaderOut,
   String? cppSourceOut,
   String? cppNamespace,
@@ -288,6 +304,7 @@ Future<int> runPigeon({
   final int result = await Pigeon.runWithOptions(
     PigeonOptions(
       input: input,
+      appDirectory: appDirectory,
       copyrightHeader: copyrightHeader,
       dartOut: dartOut,
       dartTestOut: dartTestOut,
@@ -307,6 +324,7 @@ Future<int> runPigeon({
         package: kotlinPackage,
         errorClassName: kotlinErrorClassName,
         includeErrorClass: kotlinIncludeErrorClass,
+        useJni: kotlinUseJni,
         useGeneratedAnnotation: kotlinUseGeneratedAnnotation,
       ),
       objcHeaderOut: objcHeaderOut,
@@ -319,6 +337,8 @@ Future<int> runPigeon({
       swiftOptions: SwiftOptions(
         errorClassName: swiftErrorClassName,
         includeErrorClass: swiftIncludeErrorClass,
+        useFfi: swiftUseFfi,
+        appDirectory: swiftAppDirectory,
       ),
       basePath: basePath,
       dartPackageName: dartPackageName,

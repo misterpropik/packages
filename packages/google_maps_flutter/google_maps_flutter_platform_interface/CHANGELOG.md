@@ -1,3 +1,7 @@
+## 2.16.0
+
+* Adds `CameraUpdate.newLatLngBoundsWithEdgeInsets` for asymmetric camera padding.
+
 ## 2.15.0
 
 * Adds support for `colorScheme` for cloud-based maps styling brightness in web.

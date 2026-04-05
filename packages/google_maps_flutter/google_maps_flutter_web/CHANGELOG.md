@@ -1,3 +1,7 @@
+## 0.6.3
+
+* Throws `UnsupportedError` for `CameraUpdate.newLatLngBoundsWithEdgeInsets` (not supported on web).
+
 ## 0.6.2
 
 * Adds `colorScheme` support for controlling cloud-based map brightness.

@@ -1007,6 +1007,11 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
             dy: update.dy,
           ),
         );
+      case CameraUpdateType.newLatLngBoundsWithEdgeInsets:
+        throw UnsupportedError(
+          'CameraUpdate.newLatLngBoundsWithEdgeInsets is not supported on Android. '
+          'Use CameraUpdate.newLatLngBounds with uniform padding instead.',
+        );
     }
   }
 

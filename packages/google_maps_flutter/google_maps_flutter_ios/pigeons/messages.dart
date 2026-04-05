@@ -71,6 +71,13 @@ class PlatformCameraUpdateNewLatLngBounds {
   final double padding;
 }
 
+/// Pigeon equivalent of NewLatLngBoundsWithEdgeInsets
+class PlatformCameraUpdateNewLatLngBoundsWithEdgeInsets {
+  PlatformCameraUpdateNewLatLngBoundsWithEdgeInsets(this.bounds, this.padding);
+  final PlatformLatLngBounds bounds;
+  final PlatformEdgeInsets padding;
+}
+
 /// Pigeon equivalent of NewLatLngZoom
 class PlatformCameraUpdateNewLatLngZoom {
   PlatformCameraUpdateNewLatLngZoom(this.latLng, this.zoom);

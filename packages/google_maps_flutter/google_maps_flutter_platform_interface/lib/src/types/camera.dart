@@ -5,6 +5,7 @@
 import 'dart:ui' show Offset;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show EdgeInsets;
 
 import 'types.dart';
 
@@ -138,6 +139,9 @@ enum CameraUpdateType {
 
   /// Zoom out
   zoomOut,
+
+  /// New coordinates bounding box with edge insets
+  newLatLngBoundsWithEdgeInsets,
 }
 
 /// Defines a camera move, supporting absolute moves as well as moves relative
@@ -165,6 +169,20 @@ abstract class CameraUpdate {
   /// map view's edges. The camera's new tilt and bearing will both be 0.0.
   static CameraUpdate newLatLngBounds(LatLngBounds bounds, double padding) {
     return CameraUpdateNewLatLngBounds(bounds, padding);
+  }
+
+  /// Returns a camera update that transforms the camera so that the specified
+  /// geographical bounding box is centered in the map view at the greatest
+  /// possible zoom level, with [padding] insets from each edge.
+  /// The camera's new tilt and bearing will both be 0.0.
+  ///
+  /// This is currently only supported on iOS. On Android and Web, this will
+  /// throw an [UnsupportedError].
+  static CameraUpdate newLatLngBoundsWithEdgeInsets(
+    LatLngBounds bounds,
+    EdgeInsets padding,
+  ) {
+    return CameraUpdateNewLatLngBoundsWithEdgeInsets(bounds, padding);
   }
 
   /// Returns a camera update that moves the camera target to the specified
@@ -252,6 +270,29 @@ class CameraUpdateNewLatLngBounds extends CameraUpdate {
   final double padding;
   @override
   Object toJson() => <Object>['newLatLngBounds', bounds.toJson(), padding];
+}
+
+/// Defines a camera move to a new bounding latitude and longitude range with
+/// edge insets.
+class CameraUpdateNewLatLngBoundsWithEdgeInsets extends CameraUpdate {
+  /// Creates a camera move to a bounding range with edge insets.
+  const CameraUpdateNewLatLngBoundsWithEdgeInsets(this.bounds, this.padding)
+    : super._(CameraUpdateType.newLatLngBoundsWithEdgeInsets);
+
+  /// The northeast and southwest bounding coordinates.
+  final LatLngBounds bounds;
+
+  /// The padding by which the view is inset from each edge.
+  final EdgeInsets padding;
+  @override
+  Object toJson() => <Object>[
+    'newLatLngBoundsWithEdgeInsets',
+    bounds.toJson(),
+    padding.top,
+    padding.left,
+    padding.bottom,
+    padding.right,
+  ];
 }
 
 /// Defines a camera move to new coordinates with a zoom level.

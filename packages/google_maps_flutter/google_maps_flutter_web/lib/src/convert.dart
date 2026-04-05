@@ -1020,6 +1020,11 @@ void _applyCameraUpdate(gmaps.Map map, CameraUpdate update) {
       map.zoom = (map.isZoomDefined() ? map.zoom : 0) - 1;
     case 'zoomTo':
       map.zoom = json[1]! as num;
+    case 'newLatLngBoundsWithEdgeInsets':
+      throw UnsupportedError(
+        'CameraUpdate.newLatLngBoundsWithEdgeInsets is not supported on web. '
+        'Use CameraUpdate.newLatLngBounds with uniform padding instead.',
+      );
     default:
       throw UnimplementedError('Unimplemented CameraMove: ${json[0]}.');
   }

@@ -678,50 +678,35 @@ this command.
     var hasMissingBuild = false;
     var buildFailed = false;
     String? arch;
-    const x64DirName = 'x64';
-    const arm64DirName = 'arm64';
     if (platform.isWindows) {
-      arch = _abi == Abi.windowsX64 ? x64DirName : arm64DirName;
+      arch = switch (_abi) {
+        Abi.windowsX64 => 'x64',
+        Abi.windowsArm64 => 'arm64',
+        _ => null,
+      };
     } else if (platform.isLinux) {
       // TODO(stuartmorgan): Support arm64 if that ever becomes a supported
       // CI configuration for the repository.
+      // See: https://github.com/flutter/flutter/issues/114349
       arch = 'x64';
     }
+
+    if (arch == null) {
+      return _PlatformResult(
+        RunState.failed,
+        error:
+            'Testing on platform and architecture "$_abi" as CMakeProjects is not supported.',
+      );
+    }
+
     for (final RepositoryPackage example in plugin.getExamples()) {
-      var project = CMakeProject(
+      final project = CMakeProject(
         example.directory,
         buildMode: buildMode,
         processRunner: processRunner,
         platform: platform,
         arch: arch,
       );
-      if (platform.isWindows) {
-        if (arch == arm64DirName && !project.isConfigured()) {
-          // Check for x64, to handle builds newer than 3.13, but that don't yet
-          // have https://github.com/flutter/flutter/issues/129807.
-          // TODO(stuartmorgan): Remove this when CI no longer supports a
-          // version of Flutter without the issue above fixed.
-          project = CMakeProject(
-            example.directory,
-            buildMode: buildMode,
-            processRunner: processRunner,
-            platform: platform,
-            arch: x64DirName,
-          );
-        }
-        if (!project.isConfigured()) {
-          // Check again without the arch subdirectory, since 3.13 doesn't
-          // have it yet.
-          // TODO(stuartmorgan): Remove this when CI no longer supports Flutter
-          // 3.13.
-          project = CMakeProject(
-            example.directory,
-            buildMode: buildMode,
-            processRunner: processRunner,
-            platform: platform,
-          );
-        }
-      }
       if (!project.isConfigured()) {
         printError(
           'ERROR: Run "flutter build" on ${example.displayName}, '

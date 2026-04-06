@@ -1,6 +1,6 @@
 ## 0.6.3
 
-* Throws `UnsupportedError` for `CameraUpdate.newLatLngBoundsWithEdgeInsets` (not supported on web).
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets` using native `fitBounds` padding.
 
 ## 0.6.2
 

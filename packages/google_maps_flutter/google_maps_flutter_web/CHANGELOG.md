@@ -1,6 +1,6 @@
 ## 0.6.3
 
-* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets` using native `fitBounds` padding.
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
 
 ## 0.6.2
 

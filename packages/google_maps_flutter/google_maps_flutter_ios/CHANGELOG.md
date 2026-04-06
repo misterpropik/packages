@@ -1,6 +1,6 @@
 ## 2.19.0
 
-* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets` using native `GMSCameraUpdate.fitBounds(_:withEdgeInsets:)`.
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
 
 ## 2.18.1
 

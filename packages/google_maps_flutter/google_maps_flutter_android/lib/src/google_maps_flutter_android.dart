@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -406,19 +407,133 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
     CameraUpdate cameraUpdate,
     CameraUpdateAnimationConfiguration configuration, {
     required int mapId,
-  }) {
+  }) async {
+    var effective = cameraUpdate;
+    if (cameraUpdate is CameraUpdateNewLatLngBoundsWithEdgeInsets) {
+      final CameraPosition pos = await _computeBoundsWithEdgeInsets(
+        cameraUpdate.bounds,
+        cameraUpdate.padding,
+        mapId,
+      );
+      effective = CameraUpdate.newCameraPosition(pos);
+    }
     return _hostApi(mapId).animateCamera(
-      _platformCameraUpdateFromCameraUpdate(cameraUpdate),
+      _platformCameraUpdateFromCameraUpdate(effective),
       configuration.duration?.inMilliseconds,
     );
   }
 
   @override
-  Future<void> moveCamera(CameraUpdate cameraUpdate, {required int mapId}) {
+  Future<void> moveCamera(
+    CameraUpdate cameraUpdate, {
+    required int mapId,
+  }) async {
+    var effective = cameraUpdate;
+    if (cameraUpdate is CameraUpdateNewLatLngBoundsWithEdgeInsets) {
+      final CameraPosition pos = await _computeBoundsWithEdgeInsets(
+        cameraUpdate.bounds,
+        cameraUpdate.padding,
+        mapId,
+      );
+      effective = CameraUpdate.newCameraPosition(pos);
+    }
     return _hostApi(
       mapId,
-    ).moveCamera(_platformCameraUpdateFromCameraUpdate(cameraUpdate));
+    ).moveCamera(_platformCameraUpdateFromCameraUpdate(effective));
   }
+
+  static const double _kMercatorTileSize = 256.0;
+
+  /// Computes a [CameraPosition] that fits [bounds] within the map viewport
+  /// minus [padding].
+  ///
+  /// Uses Web Mercator projection to calculate the zoom level and offset
+  /// center from the current map dimensions.
+  Future<CameraPosition> _computeBoundsWithEdgeInsets(
+    LatLngBounds bounds,
+    EdgeInsets padding,
+    int mapId,
+  ) async {
+    final double currentZoom = await getZoomLevel(mapId: mapId);
+    final LatLngBounds region = await getVisibleRegion(mapId: mapId);
+    final double scale = pow(2.0, currentZoom).toDouble();
+
+    double regionLngSpan =
+        region.northeast.longitude - region.southwest.longitude;
+    if (regionLngSpan <= 0) {
+      regionLngSpan += 360;
+    }
+    final double mapWidthDp =
+        regionLngSpan / 360.0 * _kMercatorTileSize * scale;
+
+    final double regionNeY = _mercatorY(region.northeast.latitude);
+    final double regionSwY = _mercatorY(region.southwest.latitude);
+    final double mapHeightDp =
+        (regionSwY - regionNeY) * _kMercatorTileSize * scale;
+
+    final double availW = mapWidthDp - padding.left - padding.right;
+    final double availH = mapHeightDp - padding.top - padding.bottom;
+
+    final LatLng ne = bounds.northeast;
+    final LatLng sw = bounds.southwest;
+    double lngSpan = ne.longitude - sw.longitude;
+    if (lngSpan <= 0) {
+      lngSpan += 360;
+    }
+
+    final double neY = _mercatorY(ne.latitude);
+    final double swY = _mercatorY(sw.latitude);
+    final double latSpanMerc = (swY - neY).abs();
+
+    final double centerLat = (ne.latitude + sw.latitude) / 2;
+    double centerLng = (ne.longitude + sw.longitude) / 2;
+    if (ne.longitude < sw.longitude) {
+      centerLng += 180;
+      if (centerLng > 180) {
+        centerLng -= 360;
+      }
+    }
+
+    if (availW <= 0 || availH <= 0) {
+      return CameraPosition(
+        target: LatLng(centerLat, centerLng),
+        zoom: currentZoom,
+      );
+    }
+
+    final double zoomLng = _log2(
+      availW / (lngSpan / 360.0 * _kMercatorTileSize),
+    );
+    final double zoomLat = _log2(availH / (latSpanMerc * _kMercatorTileSize));
+    final double zoom = min(zoomLng, zoomLat);
+
+    final double targetScale = pow(2.0, zoom).toDouble();
+    final double lngPerDp = 360.0 / (_kMercatorTileSize * targetScale);
+    final double offsetLng = (padding.right - padding.left) / 2 * lngPerDp;
+
+    final double centerMercY = _mercatorY(centerLat);
+    final double centerPxY = centerMercY * _kMercatorTileSize * targetScale;
+    final double offsetPxY = centerPxY + (padding.bottom - padding.top) / 2;
+    final double offsetLat = _inverseMercatorY(
+      offsetPxY / (_kMercatorTileSize * targetScale),
+    );
+
+    return CameraPosition(
+      target: LatLng(offsetLat, centerLng + offsetLng),
+      zoom: zoom,
+    );
+  }
+
+  static double _mercatorY(double lat) {
+    final double latRad = lat * pi / 180;
+    return (1 - log(tan(latRad) + 1 / cos(latRad)) / pi) / 2;
+  }
+
+  static double _inverseMercatorY(double y) {
+    return (2 * atan(exp(pi * (1 - 2 * y))) - pi / 2) * 180 / pi;
+  }
+
+  static double _log2(double x) => log(x) / ln2;
 
   @override
   Future<void> setMapStyle(String? mapStyle, {required int mapId}) async {
@@ -1008,9 +1123,11 @@ class GoogleMapsFlutterAndroid extends GoogleMapsFlutterPlatform {
           ),
         );
       case CameraUpdateType.newLatLngBoundsWithEdgeInsets:
-        throw UnsupportedError(
-          'CameraUpdate.newLatLngBoundsWithEdgeInsets is not supported on Android. '
-          'Use CameraUpdate.newLatLngBounds with uniform padding instead.',
+        // Requires async platform calls (getZoomLevel, getVisibleRegion) to
+        // compute the polyfill, so it is handled in moveCamera/animateCamera
+        // before reaching this static sync method.
+        throw StateError(
+          'newLatLngBoundsWithEdgeInsets should be unreachable here.',
         );
     }
   }

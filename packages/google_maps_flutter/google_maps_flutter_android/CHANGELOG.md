@@ -1,6 +1,6 @@
 ## 2.19.6
 
-* Throws `UnsupportedError` for `CameraUpdate.newLatLngBoundsWithEdgeInsets` (not supported on Android).
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
 
 ## 2.19.5
 

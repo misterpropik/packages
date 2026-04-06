@@ -1,6 +1,7 @@
 ## 3.24.3
 
 * Prevents test `WKFrameInfo` from deallocating during tests to prevent crash on iOS 26+.
+* Fixes `onWebResourceError` integration test to accept null URL on iOS 26+.
 
 ## 3.24.2
 

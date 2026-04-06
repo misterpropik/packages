@@ -1021,7 +1021,10 @@ Future<void> main() async {
 
       final WebResourceError error = await errorCompleter.future;
       expect(error, isNotNull);
-      expect(error.url?.startsWith('https://www.notawebsite..com'), isTrue);
+      // On iOS 26+, the error may not include the failing URL.
+      if (error.url != null) {
+        expect(error.url!.startsWith('https://www.notawebsite..com'), isTrue);
+      }
 
       expect((error as WebKitWebResourceError).domain, isNotNull);
     });

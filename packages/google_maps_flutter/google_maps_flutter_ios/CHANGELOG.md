@@ -1,3 +1,8 @@
+## 2.18.2
+
+* Suppresses `-Wenum-enum-conversion` warning in `Google-Maps-iOS-Utils` for Xcode 26+ compatibility.
+* Fixes enum type mismatch in `FGMTileOverlayController` for Xcode 26+ compatibility.
+
 ## 2.18.1
 
 * Removes conditional header logic that broke add-to-app builds.

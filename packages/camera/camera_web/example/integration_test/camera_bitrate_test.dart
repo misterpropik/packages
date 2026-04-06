@@ -65,10 +65,11 @@ void main() {
       mockWindow.navigator = navigator;
       mockNavigator.mediaDevices = mediaDevices;
 
-      final canvasElement = HTMLCanvasElement()
-        ..width = videoSize.width.toInt()
-        ..height = videoSize.height.toInt()
-        ..context2D.clearRect(0, 0, videoSize.width, videoSize.height);
+      final canvasElement =
+          HTMLCanvasElement()
+            ..width = videoSize.width.toInt()
+            ..height = videoSize.height.toInt()
+            ..context2D.clearRect(0, 0, videoSize.width, videoSize.height);
 
       final videoElement = HTMLVideoElement();
 
@@ -90,6 +91,8 @@ void main() {
       when(
         cameraService.getMediaStreamForOptions(options, cameraId: cameraId),
       ).thenAnswer((_) async => canvasElement.captureStream());
+
+      when(cameraService.hasPropertyOffScreenCanvas()).thenAnswer((_) => true);
 
       final camera = Camera(
         textureId: cameraId,

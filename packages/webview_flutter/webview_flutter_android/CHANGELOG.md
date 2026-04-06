@@ -1,3 +1,7 @@
+## 4.11.0
+
+* Adds support for retrieving cookies with `PlatformWebViewCookieManager.getCookies`.
+
 ## 4.10.15
 
 * Fixes dartdoc comments that accidentally used HTML.

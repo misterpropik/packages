@@ -1,3 +1,7 @@
+## 2.19.0
+
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
+
 ## 2.18.1
 
 * Removes conditional header logic that broke add-to-app builds.

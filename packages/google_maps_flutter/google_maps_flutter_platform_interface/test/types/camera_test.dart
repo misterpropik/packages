@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/painting.dart' show EdgeInsets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 
@@ -126,5 +127,29 @@ void main() {
     expect(cameraUpdate.updateType, CameraUpdateType.zoomOut);
     final jsonList = cameraUpdate.toJson() as List<Object>;
     expect(jsonList[0], 'zoomOut');
+  });
+
+  test('CameraUpdate.newLatLngBoundsWithEdgeInsets', () {
+    final latLngBounds = LatLngBounds(
+      northeast: const LatLng(1.0, 2.0),
+      southwest: const LatLng(-2.0, -3.0),
+    );
+    const padding = EdgeInsets.fromLTRB(10.0, 20.0, 30.0, 40.0);
+    final CameraUpdate cameraUpdate =
+        CameraUpdate.newLatLngBoundsWithEdgeInsets(latLngBounds, padding);
+    expect(cameraUpdate.runtimeType, CameraUpdateNewLatLngBoundsWithEdgeInsets);
+    expect(
+      cameraUpdate.updateType,
+      CameraUpdateType.newLatLngBoundsWithEdgeInsets,
+    );
+    cameraUpdate as CameraUpdateNewLatLngBoundsWithEdgeInsets;
+    expect(cameraUpdate.bounds, latLngBounds);
+    expect(cameraUpdate.padding, padding);
+    final jsonList = cameraUpdate.toJson() as List<Object>;
+    expect(jsonList[0], 'newLatLngBoundsWithEdgeInsets');
+    expect(jsonList[2], 20.0);
+    expect(jsonList[3], 10.0);
+    expect(jsonList[4], 40.0);
+    expect(jsonList[5], 30.0);
   });
 }

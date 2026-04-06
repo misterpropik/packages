@@ -241,6 +241,14 @@ GMSCameraUpdate *FGMGetCameraUpdateForPigeonCameraUpdate(FGMPlatformCameraUpdate
     return
         [GMSCameraUpdate fitBounds:FGMGetCoordinateBoundsForPigeonLatLngBounds(typedUpdate.bounds)
                        withPadding:typedUpdate.padding];
+  } else if ([update isKindOfClass:[FGMPlatformCameraUpdateNewLatLngBoundsWithEdgeInsets class]]) {
+    FGMPlatformCameraUpdateNewLatLngBoundsWithEdgeInsets *typedUpdate =
+        (FGMPlatformCameraUpdateNewLatLngBoundsWithEdgeInsets *)update;
+    FGMPlatformEdgeInsets *padding = typedUpdate.padding;
+    return
+        [GMSCameraUpdate fitBounds:FGMGetCoordinateBoundsForPigeonLatLngBounds(typedUpdate.bounds)
+                    withEdgeInsets:UIEdgeInsetsMake(padding.top, padding.left,
+                                                   padding.bottom, padding.right)];
   } else if ([update isKindOfClass:[FGMPlatformCameraUpdateNewLatLngZoom class]]) {
     FGMPlatformCameraUpdateNewLatLngZoom *typedUpdate =
         (FGMPlatformCameraUpdateNewLatLngZoom *)update;

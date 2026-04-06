@@ -1,3 +1,7 @@
+## 0.6.3
+
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
+
 ## 0.6.2
 
 * Adds `colorScheme` support for controlling cloud-based map brightness.

@@ -1336,6 +1336,56 @@ void main() {
     expect(typedUpdate.out, true);
   });
 
+  test(
+    'moveCamera calls through with expected newLatLngBoundsWithEdgeInsets',
+    () async {
+      const mapId = 1;
+      final (GoogleMapsFlutterIOS maps, MockMapsApi api) = setUpMockMap(
+        mapId: mapId,
+      );
+
+      final bounds = LatLngBounds(
+        northeast: const LatLng(10.0, 20.0),
+        southwest: const LatLng(9.0, 21.0),
+      );
+      const padding = EdgeInsets.fromLTRB(10.0, 20.0, 30.0, 40.0);
+      final CameraUpdate update = CameraUpdate.newLatLngBoundsWithEdgeInsets(
+        bounds,
+        padding,
+      );
+      await maps.moveCamera(update, mapId: mapId);
+
+      final VerificationResult verification = verify(
+        api.moveCamera(captureAny),
+      );
+      final passedUpdate = verification.captured[0] as PlatformCameraUpdate;
+      final typedUpdate =
+          passedUpdate.cameraUpdate
+              as PlatformCameraUpdateNewLatLngBoundsWithEdgeInsets;
+      update as CameraUpdateNewLatLngBoundsWithEdgeInsets;
+      expect(
+        typedUpdate.bounds.northeast.latitude,
+        update.bounds.northeast.latitude,
+      );
+      expect(
+        typedUpdate.bounds.northeast.longitude,
+        update.bounds.northeast.longitude,
+      );
+      expect(
+        typedUpdate.bounds.southwest.latitude,
+        update.bounds.southwest.latitude,
+      );
+      expect(
+        typedUpdate.bounds.southwest.longitude,
+        update.bounds.southwest.longitude,
+      );
+      expect(typedUpdate.padding.top, update.padding.top);
+      expect(typedUpdate.padding.left, update.padding.left);
+      expect(typedUpdate.padding.bottom, update.padding.bottom);
+      expect(typedUpdate.padding.right, update.padding.right);
+    },
+  );
+
   test('MapBitmapScaling to PlatformMapBitmapScaling', () {
     expect(
       GoogleMapsFlutterIOS.platformMapBitmapScalingFromScaling(

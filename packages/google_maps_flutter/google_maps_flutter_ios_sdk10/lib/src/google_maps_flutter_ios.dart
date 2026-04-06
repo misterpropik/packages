@@ -886,6 +886,19 @@ class GoogleMapsFlutterIOS extends GoogleMapsFlutterPlatform {
             dy: update.dy,
           ),
         );
+      case CameraUpdateType.newLatLngBoundsWithEdgeInsets:
+        update as CameraUpdateNewLatLngBoundsWithEdgeInsets;
+        return PlatformCameraUpdate(
+          cameraUpdate: PlatformCameraUpdateNewLatLngBoundsWithEdgeInsets(
+            bounds: _platformLatLngBoundsFromLatLngBounds(update.bounds)!,
+            padding: PlatformEdgeInsets(
+              top: update.padding.top,
+              left: update.padding.left,
+              bottom: update.padding.bottom,
+              right: update.padding.right,
+            ),
+          ),
+        );
     }
   }
 

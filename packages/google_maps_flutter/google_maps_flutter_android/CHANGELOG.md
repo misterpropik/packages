@@ -1,3 +1,7 @@
+## 2.19.6
+
+* Adds support for `CameraUpdate.newLatLngBoundsWithEdgeInsets`.
+
 ## 2.19.5
 
 * Fixes a crash when using the legacy map renderer by adding the `org.apache.http.legacy` library.

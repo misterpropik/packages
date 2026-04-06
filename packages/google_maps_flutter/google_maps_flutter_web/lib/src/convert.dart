@@ -1020,6 +1020,22 @@ void _applyCameraUpdate(gmaps.Map map, CameraUpdate update) {
       map.zoom = (map.isZoomDefined() ? map.zoom : 0) - 1;
     case 'zoomTo':
       map.zoom = json[1]! as num;
+    case 'newLatLngBoundsWithEdgeInsets':
+      final List<Object?> latLngPair = asJsonList(json[1]);
+      final List<Object?> latLng1 = asJsonList(latLngPair[0]);
+      final List<Object?> latLng2 = asJsonList(latLngPair[1]);
+      map.fitBounds(
+        gmaps.LatLngBounds(
+          gmaps.LatLng(latLng1[0]! as num, latLng1[1]! as num),
+          gmaps.LatLng(latLng2[0]! as num, latLng2[1]! as num),
+        ),
+        gmaps.Padding(
+          top: json[2]! as num,
+          left: json[3]! as num,
+          bottom: json[4]! as num,
+          right: json[5]! as num,
+        ),
+      );
     default:
       throw UnimplementedError('Unimplemented CameraMove: ${json[0]}.');
   }

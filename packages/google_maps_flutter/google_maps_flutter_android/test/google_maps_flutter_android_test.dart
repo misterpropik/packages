@@ -1673,4 +1673,113 @@ void main() {
       PlatformMarkerType.marker,
     );
   });
+
+  group('newLatLngBoundsWithEdgeInsets polyfill', () {
+    void stubMapState(MockMapsApi api, {required double zoom}) {
+      when(api.getZoomLevel()).thenAnswer((_) async => zoom);
+      when(api.getVisibleRegion()).thenAnswer(
+        (_) async => PlatformLatLngBounds(
+          southwest: PlatformLatLng(latitude: -10, longitude: -20),
+          northeast: PlatformLatLng(latitude: 10, longitude: 20),
+        ),
+      );
+    }
+
+    test(
+      'moveCamera with symmetric padding produces centered result',
+      () async {
+        const mapId = 1;
+        final (GoogleMapsFlutterAndroid maps, MockMapsApi api) = setUpMockMap(
+          mapId: mapId,
+        );
+        stubMapState(api, zoom: 5);
+
+        final bounds = LatLngBounds(
+          southwest: const LatLng(-1, -1),
+          northeast: const LatLng(1, 1),
+        );
+        await maps.moveCamera(
+          CameraUpdate.newLatLngBoundsWithEdgeInsets(
+            bounds,
+            const EdgeInsets.all(50),
+          ),
+          mapId: mapId,
+        );
+
+        final verification = verify(api.moveCamera(captureAny));
+        final passedUpdate = verification.captured[0] as PlatformCameraUpdate;
+        final pos =
+            passedUpdate.cameraUpdate as PlatformCameraUpdateNewCameraPosition;
+        expect(pos.cameraPosition.target.latitude, closeTo(0, 0.01));
+        expect(pos.cameraPosition.target.longitude, closeTo(0, 0.01));
+        expect(pos.cameraPosition.zoom, greaterThan(0));
+      },
+    );
+
+    test('moveCamera with bottom-heavy padding shifts center upward', () async {
+      const mapId = 1;
+      final (GoogleMapsFlutterAndroid maps, MockMapsApi api) = setUpMockMap(
+        mapId: mapId,
+      );
+      stubMapState(api, zoom: 5);
+
+      final bounds = LatLngBounds(
+        southwest: const LatLng(-1, -1),
+        northeast: const LatLng(1, 1),
+      );
+      await maps.moveCamera(
+        CameraUpdate.newLatLngBoundsWithEdgeInsets(
+          bounds,
+          const EdgeInsets.only(bottom: 200),
+        ),
+        mapId: mapId,
+      );
+
+      final verification = verify(api.moveCamera(captureAny));
+      final passedUpdate = verification.captured[0] as PlatformCameraUpdate;
+      final pos =
+          passedUpdate.cameraUpdate as PlatformCameraUpdateNewCameraPosition;
+      expect(
+        pos.cameraPosition.target.latitude,
+        lessThan(0),
+        reason:
+            'Bottom-heavy padding should shift the center south (negative latitude)',
+      );
+      expect(pos.cameraPosition.target.longitude, closeTo(0, 0.01));
+    });
+
+    test(
+      'moveCamera with right-heavy padding shifts center rightward',
+      () async {
+        const mapId = 1;
+        final (GoogleMapsFlutterAndroid maps, MockMapsApi api) = setUpMockMap(
+          mapId: mapId,
+        );
+        stubMapState(api, zoom: 5);
+
+        final bounds = LatLngBounds(
+          southwest: const LatLng(-1, -1),
+          northeast: const LatLng(1, 1),
+        );
+        await maps.moveCamera(
+          CameraUpdate.newLatLngBoundsWithEdgeInsets(
+            bounds,
+            const EdgeInsets.only(right: 200),
+          ),
+          mapId: mapId,
+        );
+
+        final verification = verify(api.moveCamera(captureAny));
+        final passedUpdate = verification.captured[0] as PlatformCameraUpdate;
+        final pos =
+            passedUpdate.cameraUpdate as PlatformCameraUpdateNewCameraPosition;
+        expect(pos.cameraPosition.target.latitude, closeTo(0, 0.01));
+        expect(
+          pos.cameraPosition.target.longitude,
+          greaterThan(0),
+          reason: 'Right-heavy padding should shift the center eastward',
+        );
+      },
+    );
+  });
 }

@@ -342,6 +342,11 @@ final class CameraApiImpl implements Messages.CameraApi {
   }
 
   @Override
+  public void setJpegImageQuality(@NonNull Long quality) {
+    camera.setJpegImageQuality(quality);
+  }
+
+  @Override
   public void dispose() {
     if (camera != null) {
       camera.dispose();

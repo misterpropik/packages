@@ -1,3 +1,7 @@
+## 0.8.13+17
+
+* Updates plugin to use Android Photo Picker on API 36 and above.
+
 ## 0.8.13+16
 
 * Bumps androidx.core:core from 1.17.0 to 1.18.0.

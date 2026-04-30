@@ -1388,6 +1388,7 @@ static void upgradeAudioSessionCategory(AVAudioSessionCategory requestedCategory
     // plugins like video_player.
     upgradeAudioSessionCategory(AVAudioSessionCategoryPlayAndRecord,
                                 AVAudioSessionCategoryOptionDefaultToSpeaker |
+                                    AVAudioSessionCategoryOptionAllowBluetooth |
                                     AVAudioSessionCategoryOptionAllowBluetoothA2DP |
                                     AVAudioSessionCategoryOptionAllowAirPlay);
   };

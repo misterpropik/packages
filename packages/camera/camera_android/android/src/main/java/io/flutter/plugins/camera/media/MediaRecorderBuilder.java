@@ -5,8 +5,10 @@
 package io.flutter.plugins.camera.media;
 
 import android.content.Context;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.CamcorderProfile;
+import android.os.Build;
 import android.media.EncoderProfiles;
 import android.media.MediaRecorder;
 import androidx.annotation.NonNull;
@@ -101,6 +103,26 @@ public class MediaRecorderBuilder {
     return this;
   }
 
+  private boolean hasExternalMicInput(@Nullable Context ctx) {
+    if (ctx == null) return false;
+    AudioManager am = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+    if (am == null) return false;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
+        int t = d.getType();
+        if (t == AudioDeviceInfo.TYPE_WIRED_HEADSET
+            || t == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+            || t == AudioDeviceInfo.TYPE_USB_DEVICE
+            || t == AudioDeviceInfo.TYPE_USB_HEADSET
+            || t == AudioDeviceInfo.TYPE_USB_ACCESSORY) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return am.isWiredHeadsetOn();
+  }
+
   @NonNull
   public MediaRecorder build() throws IOException, NullPointerException, IndexOutOfBoundsException {
     MediaRecorder mediaRecorder = recorderFactory.makeMediaRecorder();
@@ -108,13 +130,10 @@ public class MediaRecorderBuilder {
     // There's a fixed order that mediaRecorder expects. Only change these functions accordingly.
     // You can find the specifics here: https://developer.android.com/reference/android/media/MediaRecorder.
     if (enableAudio) {
-      boolean wiredHeadset = false;
-      if (context != null) {
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        wiredHeadset = am != null && am.isWiredHeadsetOn();
-      }
       mediaRecorder.setAudioSource(
-          wiredHeadset ? MediaRecorder.AudioSource.VOICE_RECOGNITION : MediaRecorder.AudioSource.MIC);
+          hasExternalMicInput(context)
+              ? MediaRecorder.AudioSource.VOICE_RECOGNITION
+              : MediaRecorder.AudioSource.MIC);
     }
     mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
 

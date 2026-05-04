@@ -114,7 +114,7 @@ public class MediaRecorderBuilder {
         wiredHeadset = am != null && am.isWiredHeadsetOn();
       }
       mediaRecorder.setAudioSource(
-          wiredHeadset ? MediaRecorder.AudioSource.UNPROCESSED : MediaRecorder.AudioSource.MIC);
+          wiredHeadset ? MediaRecorder.AudioSource.VOICE_RECOGNITION : MediaRecorder.AudioSource.MIC);
     }
     mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
 

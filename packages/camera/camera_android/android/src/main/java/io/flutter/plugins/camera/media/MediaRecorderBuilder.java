@@ -4,6 +4,8 @@
 
 package io.flutter.plugins.camera.media;
 
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.EncoderProfiles;
 import android.media.MediaRecorder;
@@ -49,6 +51,7 @@ public class MediaRecorderBuilder {
 
   private boolean enableAudio;
   private int mediaOrientation;
+  @Nullable private Context context;
 
   public MediaRecorderBuilder(
       @NonNull CamcorderProfile camcorderProfile, @NonNull RecordingParameters parameters) {
@@ -87,6 +90,12 @@ public class MediaRecorderBuilder {
   }
 
   @NonNull
+  public MediaRecorderBuilder setContext(@Nullable Context context) {
+    this.context = context;
+    return this;
+  }
+
+  @NonNull
   public MediaRecorderBuilder setMediaOrientation(int orientation) {
     this.mediaOrientation = orientation;
     return this;
@@ -98,7 +107,15 @@ public class MediaRecorderBuilder {
 
     // There's a fixed order that mediaRecorder expects. Only change these functions accordingly.
     // You can find the specifics here: https://developer.android.com/reference/android/media/MediaRecorder.
-    if (enableAudio) mediaRecorder.setAudioSource(MediaRecorder.AudioSource.UNPROCESSED);
+    if (enableAudio) {
+      boolean wiredHeadset = false;
+      if (context != null) {
+        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        wiredHeadset = am != null && am.isWiredHeadsetOn();
+      }
+      mediaRecorder.setAudioSource(
+          wiredHeadset ? MediaRecorder.AudioSource.UNPROCESSED : MediaRecorder.AudioSource.MIC);
+    }
     mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
 
     if (SdkCapabilityChecker.supportsEncoderProfiles() && encoderProfiles != null) {

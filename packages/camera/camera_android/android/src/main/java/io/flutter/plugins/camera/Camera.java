@@ -319,6 +319,7 @@ class Camera
     mediaRecorder =
         mediaRecorderBuilder
             .setEnableAudio(videoCaptureSettings.enableAudio)
+            .setContext(applicationContext)
             .setMediaOrientation(
                 lockedOrientation == null
                     ? getDeviceOrientationManager().getVideoOrientation()
